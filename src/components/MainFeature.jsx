@@ -707,8 +707,358 @@ function MainFeature({ currentView }) {
     </div>
   )
 
-  const renderDefaultView = () => (
   const renderRepairsView = () => (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div className="space-y-2">
+          <h2 className="text-2xl sm:text-3xl font-bold text-surface-900 dark:text-surface-100">
+            Repair Services
+          </h2>
+          <p className="text-surface-600 dark:text-surface-400">
+            Track and manage customer repair requests
+          </p>
+        </div>
+        
+        <motion.button
+          onClick={() => setShowAddRepair(true)}
+          className="flex items-center space-x-2 bg-gradient-to-r from-primary to-secondary text-white px-6 py-3 rounded-xl hover:shadow-lg transition-all duration-200 font-medium w-fit"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          <ApperIcon name="Plus" className="w-5 h-5" />
+          <span>Add Repair Request</span>
+        </motion.button>
+      </div>
+
+      {/* Search Bar */}
+      <div className="bg-white dark:bg-surface-800 rounded-2xl p-4 sm:p-6 shadow-soft border border-surface-200 dark:border-surface-700">
+        <div className="relative">
+          <ApperIcon name="Search" className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-surface-400" />
+          <input
+            type="text"
+            placeholder="Search repairs by customer, order number, or description..."
+            value={repairSearchTerm}
+            onChange={(e) => setRepairSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-3 bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+          />
+        </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <motion.div 
+          className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border border-blue-200 dark:border-blue-700 rounded-2xl p-6 shadow-soft"
+          whileHover={{ scale: 1.02 }}
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-blue-600 dark:text-blue-400 mb-1">Total Repairs</p>
+              <p className="text-2xl font-bold text-surface-900 dark:text-surface-100">{repairRequests.length}</p>
+            </div>
+            <div className="w-12 h-12 bg-blue-100 dark:bg-blue-800 rounded-xl flex items-center justify-center">
+              <ApperIcon name="Wrench" className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+            </div>
+          </div>
+        </motion.div>
+
+        <motion.div 
+          className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border border-orange-200 dark:border-orange-700 rounded-2xl p-6 shadow-soft"
+          whileHover={{ scale: 1.02 }}
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-orange-600 dark:text-orange-400 mb-1">Pending</p>
+              <p className="text-2xl font-bold text-surface-900 dark:text-surface-100">{getPendingRepairs()}</p>
+            </div>
+            <div className="w-12 h-12 bg-orange-100 dark:bg-orange-800 rounded-xl flex items-center justify-center">
+              <ApperIcon name="Clock" className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+            </div>
+          </div>
+        </motion.div>
+
+        <motion.div 
+          className="bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 border border-yellow-200 dark:border-yellow-700 rounded-2xl p-6 shadow-soft"
+          whileHover={{ scale: 1.02 }}
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-yellow-600 dark:text-yellow-400 mb-1">In Progress</p>
+              <p className="text-2xl font-bold text-surface-900 dark:text-surface-100">{getInProgressRepairs()}</p>
+            </div>
+            <div className="w-12 h-12 bg-yellow-100 dark:bg-yellow-800 rounded-xl flex items-center justify-center">
+              <ApperIcon name="Settings" className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
+            </div>
+          </div>
+        </motion.div>
+
+        <motion.div 
+          className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border border-green-200 dark:border-green-700 rounded-2xl p-6 shadow-soft"
+          whileHover={{ scale: 1.02 }}
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-green-600 dark:text-green-400 mb-1">Completed</p>
+              <p className="text-2xl font-bold text-surface-900 dark:text-surface-100">{getCompletedRepairs()}</p>
+            </div>
+            <div className="w-12 h-12 bg-green-100 dark:bg-green-800 rounded-xl flex items-center justify-center">
+              <ApperIcon name="CheckCircle" className="w-6 h-6 text-green-600 dark:text-green-400" />
+            </div>
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Repairs Table */}
+      <div className="bg-white dark:bg-surface-800 rounded-2xl shadow-soft border border-surface-200 dark:border-surface-700 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-surface-50 dark:bg-surface-900 border-b border-surface-200 dark:border-surface-700">
+              <tr>
+                <th className="px-4 sm:px-6 py-4 text-left text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wider">
+                  Order Number
+                </th>
+                <th className="px-4 sm:px-6 py-4 text-left text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wider">
+                  Customer
+                </th>
+                <th className="px-4 sm:px-6 py-4 text-left text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wider">
+                  Service Description
+                </th>
+                <th className="px-4 sm:px-6 py-4 text-left text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-4 sm:px-6 py-4 text-left text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wider">
+                  Est. Completion
+                </th>
+                <th className="px-4 sm:px-6 py-4 text-left text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-surface-200 dark:divide-surface-700">
+              {filteredRepairs.map((repair) => (
+                <motion.tr 
+                  key={repair.id} 
+                  className="hover:bg-surface-50 dark:hover:bg-surface-900 transition-colors duration-200"
+                  whileHover={{ scale: 1.002 }}
+                >
+                  <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <span className="text-sm font-medium text-surface-900 dark:text-surface-100">
+                        {repair.orderNumber}
+                      </span>
+                      {repair.priority === 'high' && (
+                        <span className="ml-2 px-2 py-1 text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 rounded-full">
+                          High Priority
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+                    <div>
+                      <div className="text-sm font-medium text-surface-900 dark:text-surface-100">
+                        {repair.customerName}
+                      </div>
+                      <div className="text-sm text-surface-500 dark:text-surface-400">
+                        {repair.customerPhone}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4 sm:px-6 py-4">
+                    <div>
+                      <div className="text-sm font-medium text-surface-900 dark:text-surface-100">
+                        {repair.deviceType}
+                      </div>
+                      <div className="text-sm text-surface-500 dark:text-surface-400 max-w-xs truncate">
+                        {repair.description}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+                    <select
+                      value={repair.status}
+                      onChange={(e) => updateRepairStatus(repair.id, e.target.value)}
+                      className={`px-3 py-1 text-xs font-medium rounded-full border-0 focus:ring-2 focus:ring-primary focus:outline-none transition-all duration-200 ${
+                        repair.status === 'pending'
+                          ? 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200'
+                          : repair.status === 'in-progress'
+                          ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                          : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                      }`}
+                    >
+                      <option value="pending">Pending</option>
+                      <option value="in-progress">In Progress</option>
+                      <option value="completed">Completed</option>
+                    </select>
+                  </td>
+                  <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-surface-900 dark:text-surface-100">
+                      {format(repair.estimatedCompletion, 'MMM dd, yyyy')}
+                    </div>
+                    <div className="text-sm text-surface-500 dark:text-surface-400">
+                      {repair.estimatedCompletion < new Date() && repair.status !== 'completed' ? 'Overdue' : 
+                       Math.ceil((repair.estimatedCompletion - new Date()) / (1000 * 60 * 60 * 24)) + ' days'}
+                    </div>
+                  </td>
+                  <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+                    <div className="flex space-x-2">
+                      <motion.button
+                        className="px-3 py-1 bg-primary text-white rounded-lg text-xs font-medium hover:bg-primary-dark transition-colors duration-200"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => toast.info(`Viewing details for ${repair.orderNumber}`)}
+                      >
+                        View
+                      </motion.button>
+                      <motion.button
+                        className="px-3 py-1 bg-surface-100 dark:bg-surface-700 text-surface-700 dark:text-surface-300 rounded-lg text-xs font-medium hover:bg-surface-200 dark:hover:bg-surface-600 transition-colors duration-200"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => toast.info(`Editing ${repair.orderNumber}`)}
+                      >
+                        Edit
+                      </motion.button>
+                    </div>
+                  </td>
+                </motion.tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Add Repair Modal */}
+      <AnimatePresence>
+        {showAddRepair && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={(e) => e.target === e.currentTarget && setShowAddRepair(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white dark:bg-surface-800 rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-surface-900 dark:text-surface-100">Add New Repair Request</h3>
+                <button
+                  onClick={() => setShowAddRepair(false)}
+                  className="p-2 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors"
+                >
+                  <ApperIcon name="X" className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleAddRepair} className="space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                      Customer Name *
+                    </label>
+                    <input
+                      type="text"
+                      value={newRepair.customerName}
+                      onChange={(e) => setNewRepair({...newRepair, customerName: e.target.value})}
+                      className="w-full px-4 py-3 bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+                      placeholder="Enter customer name"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                      Phone Number
+                    </label>
+                    <input
+                      type="tel"
+                      value={newRepair.customerPhone}
+                      onChange={(e) => setNewRepair({...newRepair, customerPhone: e.target.value})}
+                      className="w-full px-4 py-3 bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+                      placeholder="+1 (555) 123-4567"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                      Device Type *
+                    </label>
+                    <input
+                      type="text"
+                      value={newRepair.deviceType}
+                      onChange={(e) => setNewRepair({...newRepair, deviceType: e.target.value})}
+                      className="w-full px-4 py-3 bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+                      placeholder="e.g., Gaming Laptop, Desktop PC"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                      Priority
+                    </label>
+                    <select
+                      value={newRepair.priority}
+                      onChange={(e) => setNewRepair({...newRepair, priority: e.target.value})}
+                      className="w-full px-4 py-3 bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+                    >
+                      <option value="low">Low</option>
+                      <option value="medium">Medium</option>
+                      <option value="high">High</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                    Service Description *
+                  </label>
+                  <textarea
+                    value={newRepair.description}
+                    onChange={(e) => setNewRepair({...newRepair, description: e.target.value})}
+                    rows={4}
+                    className="w-full px-4 py-3 bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+                    placeholder="Describe the issue and required service..."
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                    Estimated Completion Date
+                  </label>
+                  <input
+                    type="date"
+                    value={newRepair.estimatedCompletion}
+                    onChange={(e) => setNewRepair({...newRepair, estimatedCompletion: e.target.value})}
+                    className="w-full px-4 py-3 bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+                    min={new Date().toISOString().split('T')[0]}
+                  />
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                  <button
+                    type="submit"
+                    className="flex-1 bg-gradient-to-r from-primary to-secondary text-white py-3 px-6 rounded-xl font-medium hover:shadow-lg transition-all duration-200"
+                  >
+                    Create Repair Request
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddRepair(false)}
+                    className="flex-1 bg-surface-100 dark:bg-surface-700 text-surface-700 dark:text-surface-300 py-3 px-6 rounded-xl font-medium hover:bg-surface-200 dark:hover:bg-surface-600 transition-all duration-200"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+
+  const renderDefaultView = () => (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
